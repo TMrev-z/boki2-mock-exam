@@ -1,11 +1,11 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$COMMIT_SHA', '.']
+    args: ['build', '-t', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$SHORT_SHA', '.']
 
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$COMMIT_SHA']
+    args: ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$SHORT_SHA']
 
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,7 +15,7 @@ steps:
       - 'deploy'
       - 'boki2-mock-exam'
       - '--image'
-      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$COMMIT_SHA'
+      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$SHORT_SHA'
       - '--region'
       - 'asia-northeast1'
       - '--platform'
@@ -23,4 +23,4 @@ steps:
       - '--allow-unauthenticated'
 
 images:
-  - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$COMMIT_SHA'
+  - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/boki2-mock-exam/app:$SHORT_SHA'

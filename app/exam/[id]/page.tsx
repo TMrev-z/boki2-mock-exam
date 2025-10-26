@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getExamById } from '@/lib/data/exams';
-import { Exam, UserAnswer, ExamResult } from '@/lib/types/exam';
+import { Exam, UserAnswer, ExamResult, TableAnswer } from '@/lib/types/exam';
 
 export default function ExamPage() {
   const params = useParams();
@@ -14,7 +14,7 @@ export default function ExamPage() {
   const [timeLeft, setTimeLeft] = useState<number>(0); // 秒
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, any>>({});
   const [result, setResult] = useState<ExamResult | null>(null);
 
   useEffect(() => {
@@ -61,20 +61,49 @@ export default function ExamPage() {
     }));
   };
 
+  const handleTableAnswerChange = (subQuestionId: string, itemKey: string, value: string) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [subQuestionId]: {
+        ...(prev[subQuestionId] || {}),
+        [itemKey]: value,
+      },
+    }));
+  };
+
   const handleSubmit = () => {
     if (!exam) return;
 
-    // 採点処理（簡易版：計算問題のみ対応）
+    // 採点処理
     let totalScore = 0;
     exam.questions.forEach((question) => {
       question.subQuestions.forEach((subQ) => {
         const userAnswer = answers[subQ.id];
+
         if (subQ.type === 'calculation') {
           const correctAnswer = (subQ.answer as any).value;
           const userValue = parseFloat(userAnswer);
           if (userValue === correctAnswer) {
             totalScore += subQ.points;
           }
+        } else if (subQ.type === 'table') {
+          const correctAnswer = (subQ.answer as TableAnswer).items;
+          const userTableAnswer = userAnswer || {};
+
+          // 各項目をチェック
+          let correctItems = 0;
+          let totalItems = Object.keys(correctAnswer).length;
+
+          Object.keys(correctAnswer).forEach((key) => {
+            const correctValue = correctAnswer[key];
+            const userValue = parseFloat(userTableAnswer[key]);
+            if (userValue === correctValue) {
+              correctItems++;
+            }
+          });
+
+          // 部分点を計算
+          totalScore += Math.round((correctItems / totalItems) * subQ.points);
         }
       });
     });
@@ -195,12 +224,37 @@ export default function ExamPage() {
                       const userAnswer = answers[subQ.id];
                       let isCorrect = false;
                       let correctAnswer = '';
+                      let detailedResult = null;
 
                       if (subQ.type === 'calculation') {
                         const correct = (subQ.answer as any).value;
                         const userValue = parseFloat(userAnswer);
                         isCorrect = userValue === correct;
                         correctAnswer = correct.toLocaleString();
+                      } else if (subQ.type === 'table') {
+                        const correctTableAnswer = (subQ.answer as TableAnswer).items;
+                        const userTableAnswer = userAnswer || {};
+
+                        let allCorrect = true;
+                        const itemResults: any[] = [];
+
+                        Object.keys(correctTableAnswer).forEach((key) => {
+                          const correctValue = correctTableAnswer[key];
+                          const userValue = parseFloat(userTableAnswer[key]);
+                          const itemCorrect = userValue === correctValue;
+
+                          if (!itemCorrect) allCorrect = false;
+
+                          itemResults.push({
+                            key,
+                            correct: correctValue,
+                            user: userTableAnswer[key] || '未回答',
+                            isCorrect: itemCorrect,
+                          });
+                        });
+
+                        isCorrect = allCorrect;
+                        detailedResult = itemResults;
                       }
 
                       return (
@@ -211,22 +265,57 @@ export default function ExamPage() {
                           }`}
                         >
                           <p className="font-semibold mb-2">{subQ.question}</p>
-                          <div className="space-y-1 text-sm">
-                            <p>
-                              あなたの回答:{' '}
-                              <span className="font-mono">
-                                {userAnswer || '未回答'}
-                              </span>
-                            </p>
-                            {!isCorrect && (
+
+                          {subQ.type === 'calculation' && (
+                            <div className="space-y-1 text-sm">
                               <p>
-                                正解: <span className="font-mono">{correctAnswer}</span>
+                                あなたの回答:{' '}
+                                <span className="font-mono">
+                                  {userAnswer || '未回答'}
+                                </span>
                               </p>
-                            )}
-                            <p className="text-gray-700 mt-2">
-                              <strong>解説:</strong> {subQ.explanation}
-                            </p>
-                          </div>
+                              {!isCorrect && (
+                                <p>
+                                  正解: <span className="font-mono">{correctAnswer}</span>
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {subQ.type === 'table' && detailedResult && (
+                            <div className="mt-3">
+                              <div className="overflow-x-auto">
+                                <table className="min-w-full text-sm border">
+                                  <thead className="bg-gray-100">
+                                    <tr>
+                                      <th className="border px-4 py-2">項目</th>
+                                      <th className="border px-4 py-2">あなたの回答</th>
+                                      <th className="border px-4 py-2">正解</th>
+                                      <th className="border px-4 py-2">判定</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {detailedResult.map((item: any, idx: number) => (
+                                      <tr key={idx} className={item.isCorrect ? 'bg-green-50' : 'bg-red-50'}>
+                                        <td className="border px-4 py-2">{item.key}</td>
+                                        <td className="border px-4 py-2 text-right font-mono">{item.user}</td>
+                                        <td className="border px-4 py-2 text-right font-mono">
+                                          {item.correct.toLocaleString()}
+                                        </td>
+                                        <td className="border px-4 py-2 text-center">
+                                          {item.isCorrect ? '✓' : '✗'}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+
+                          <p className="text-gray-700 mt-3">
+                            <strong>解説:</strong> {subQ.explanation}
+                          </p>
                         </div>
                       );
                     })}
@@ -309,6 +398,7 @@ export default function ExamPage() {
                       <p className="font-semibold mb-3 text-gray-800">
                         {subQ.question}
                       </p>
+
                       {subQ.type === 'calculation' && (
                         <div className="flex items-center gap-2">
                           <input
@@ -323,6 +413,40 @@ export default function ExamPage() {
                           <span className="text-gray-600">円</span>
                         </div>
                       )}
+
+                      {subQ.type === 'table' && subQ.tableConfig && (
+                        <div className="mt-4">
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full border">
+                              <thead className="bg-gray-100">
+                                <tr>
+                                  <th className="border px-4 py-2 text-left">項目</th>
+                                  <th className="border px-4 py-2 text-right">金額（円）</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {subQ.tableConfig.items.map((item) => (
+                                  <tr key={item}>
+                                    <td className="border px-4 py-2">{item}</td>
+                                    <td className="border px-2 py-2">
+                                      <input
+                                        type="number"
+                                        value={answers[subQ.id]?.[item] || ''}
+                                        onChange={(e) =>
+                                          handleTableAnswerChange(subQ.id, item, e.target.value)
+                                        }
+                                        className="w-full border-gray-300 rounded px-3 py-1 text-right font-mono"
+                                        placeholder="0"
+                                      />
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
                       {subQ.type === 'journal' && (
                         <div className="bg-gray-50 p-4 rounded">
                           <p className="text-sm text-gray-600">

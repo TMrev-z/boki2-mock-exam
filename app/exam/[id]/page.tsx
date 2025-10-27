@@ -407,7 +407,7 @@ export default function ExamPage() {
                             </div>
                           )}
 
-                          {subQ.type === 'table' && detailedResult && (
+                          {subQ.type === 'table' && detailedResult && Array.isArray(detailedResult) && (
                             <div className="mt-3">
                               {subQ.tableConfig?.sections ? (
                                 <div className="grid grid-cols-2 gap-4">

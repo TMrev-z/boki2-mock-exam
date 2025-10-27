@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bk-bg: #ffffff;
+  --bk-surface: #fafafa;
+  --bk-border: #E5E7EB; /* gray-200 */
+  --bk-border-strong: #D1D5DB; /* gray-300 */
+  --bk-text: #111827; /* gray-900 */
+  --bk-text-muted: #4B5563; /* gray-600 */
+  --bk-accent: #2563EB; /* blue-600 */
+  --bk-accent-weak: #DBEAFE; /* blue-100 */
+  --bk-success: #10B981; /* green-500 */
+  --bk-warn: #F59E0B; /* amber-500 */
+  --bk-error: #EF4444; /* red-500 */
+}
+
+body {
+  margin: 0;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--bk-text);
+  background-color: var(--bk-bg);
+}
+
+/* 数値フォント（等幅） */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

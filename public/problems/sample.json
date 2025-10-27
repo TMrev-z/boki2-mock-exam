@@ -1,0 +1,43 @@
+{
+  "title": "第1回 模擬試験",
+  "durationSec": 5400,
+  "questions": [
+    {
+      "type": "BS_FILL",
+      "id": "q1-2",
+      "title": "貸借対照表を完成させなさい",
+      "rows": [
+        {"section": "流動資産合計", "key": "curr_assets", "input": true, "points": 6},
+        {"section": "固定資産合計", "key": "fixed_assets", "input": true, "points": 6},
+        {"section": "資産合計", "key": "assets_total", "input": true, "points": 4},
+        {"section": "流動負債合計", "key": "curr_liab", "input": true, "points": 4},
+        {"section": "純資産合計", "key": "net_assets", "input": true, "points": 4}
+      ],
+      "givens": {
+        "cash": 2000000,
+        "notes_recv": 1500000,
+        "accounts_recv": 3000000,
+        "sales_discount": 60000,
+        "merchandise": 800000,
+        "building": 10000000,
+        "accum_dep_building": 4000000,
+        "notes_pay": 1200000,
+        "accounts_pay": 2500000,
+        "capital": 8000000,
+        "retained_earnings": 2040000
+      },
+      "rubric": {"method": "formula"}
+    },
+    {
+      "type": "JOB_COSTING",
+      "id": "q4-1",
+      "title": "製造指図書No.101の製品原価",
+      "givens": {"dm": 500000, "dl": 300000, "oh_rate": 1.2},
+      "asks": [
+        {"key": "oh", "label": "製造間接費", "points": 6},
+        {"key": "unit_cost", "label": "製品原価", "points": 6}
+      ],
+      "rubric": {"method": "calc", "calc": "oh=dl*oh_rate; unit_cost=dm+dl+oh"}
+    }
+  ]
+}

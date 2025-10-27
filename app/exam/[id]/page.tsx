@@ -71,6 +71,36 @@ export default function ExamPage() {
     }));
   };
 
+  const handleJournalEntryChange = (
+    subQuestionId: string,
+    side: 'debit' | 'credit',
+    index: number,
+    field: 'account' | 'amount',
+    value: string
+  ) => {
+    setAnswers((prev) => {
+      const current = prev[subQuestionId] || { debit: [], credit: [] };
+      const entries = [...(current[side] || [])];
+
+      if (!entries[index]) {
+        entries[index] = { account: '', amount: '' };
+      }
+
+      entries[index] = {
+        ...entries[index],
+        [field]: value,
+      };
+
+      return {
+        ...prev,
+        [subQuestionId]: {
+          ...current,
+          [side]: entries,
+        },
+      };
+    });
+  };
+
   const handleSubmit = () => {
     if (!exam) return;
 
@@ -104,6 +134,43 @@ export default function ExamPage() {
 
           // 部分点を計算
           totalScore += Math.round((correctItems / totalItems) * subQ.points);
+        } else if (subQ.type === 'journal') {
+          const correctAnswer = (subQ.answer as any);
+          const userJournalAnswer = userAnswer || { debit: [], credit: [] };
+
+          let correctEntries = 0;
+          let totalEntries = 0;
+
+          // 借方のチェック
+          if (correctAnswer.debit) {
+            totalEntries += correctAnswer.debit.length;
+            correctAnswer.debit.forEach((correctEntry: any) => {
+              const match = userJournalAnswer.debit?.find(
+                (userEntry: any) =>
+                  userEntry.account === correctEntry.account &&
+                  parseFloat(userEntry.amount) === correctEntry.amount
+              );
+              if (match) correctEntries++;
+            });
+          }
+
+          // 貸方のチェック
+          if (correctAnswer.credit) {
+            totalEntries += correctAnswer.credit.length;
+            correctAnswer.credit.forEach((correctEntry: any) => {
+              const match = userJournalAnswer.credit?.find(
+                (userEntry: any) =>
+                  userEntry.account === correctEntry.account &&
+                  parseFloat(userEntry.amount) === correctEntry.amount
+              );
+              if (match) correctEntries++;
+            });
+          }
+
+          // 部分点を計算
+          if (totalEntries > 0) {
+            totalScore += Math.round((correctEntries / totalEntries) * subQ.points);
+          }
         }
       });
     });
@@ -255,6 +322,64 @@ export default function ExamPage() {
 
                         isCorrect = allCorrect;
                         detailedResult = itemResults;
+                      } else if (subQ.type === 'journal') {
+                        const correctJournalAnswer = (subQ.answer as any);
+                        const userJournalAnswer = userAnswer || { debit: [], credit: [] };
+
+                        let allCorrect = true;
+                        const debitResults: any[] = [];
+                        const creditResults: any[] = [];
+
+                        // 借方のチェック
+                        if (correctJournalAnswer.debit) {
+                          correctJournalAnswer.debit.forEach((correctEntry: any, idx: number) => {
+                            const userEntry = userJournalAnswer.debit?.[idx] || {
+                              account: '',
+                              amount: '',
+                            };
+                            const accountCorrect = userEntry.account === correctEntry.account;
+                            const amountCorrect =
+                              parseFloat(userEntry.amount) === correctEntry.amount;
+                            const itemCorrect = accountCorrect && amountCorrect;
+
+                            if (!itemCorrect) allCorrect = false;
+
+                            debitResults.push({
+                              correctAccount: correctEntry.account,
+                              correctAmount: correctEntry.amount,
+                              userAccount: userEntry.account || '未回答',
+                              userAmount: userEntry.amount || '未回答',
+                              isCorrect: itemCorrect,
+                            });
+                          });
+                        }
+
+                        // 貸方のチェック
+                        if (correctJournalAnswer.credit) {
+                          correctJournalAnswer.credit.forEach((correctEntry: any, idx: number) => {
+                            const userEntry = userJournalAnswer.credit?.[idx] || {
+                              account: '',
+                              amount: '',
+                            };
+                            const accountCorrect = userEntry.account === correctEntry.account;
+                            const amountCorrect =
+                              parseFloat(userEntry.amount) === correctEntry.amount;
+                            const itemCorrect = accountCorrect && amountCorrect;
+
+                            if (!itemCorrect) allCorrect = false;
+
+                            creditResults.push({
+                              correctAccount: correctEntry.account,
+                              correctAmount: correctEntry.amount,
+                              userAccount: userEntry.account || '未回答',
+                              userAmount: userEntry.amount || '未回答',
+                              isCorrect: itemCorrect,
+                            });
+                          });
+                        }
+
+                        isCorrect = allCorrect;
+                        detailedResult = { debit: debitResults, credit: creditResults };
                       }
 
                       return (
@@ -395,6 +520,100 @@ export default function ExamPage() {
                                   </table>
                                 </div>
                               )}
+                            </div>
+                          )}
+
+                          {subQ.type === 'journal' && detailedResult && (
+                            <div className="mt-3">
+                              <div className="grid grid-cols-2 gap-4">
+                                {/* 借方 */}
+                                <div className="border">
+                                  <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                    借方
+                                  </div>
+                                  <table className="w-full text-sm">
+                                    <thead className="bg-gray-100">
+                                      <tr>
+                                        <th className="border px-2 py-1">科目</th>
+                                        <th className="border px-2 py-1">回答</th>
+                                        <th className="border px-2 py-1">正解</th>
+                                        <th className="border px-2 py-1">金額</th>
+                                        <th className="border px-2 py-1">正解</th>
+                                        <th className="border px-2 py-1">判定</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {(detailedResult as any).debit.map((item: any, idx: number) => (
+                                        <tr
+                                          key={idx}
+                                          className={item.isCorrect ? 'bg-green-50' : 'bg-red-50'}
+                                        >
+                                          <td className="border px-2 py-1">借方</td>
+                                          <td className="border px-2 py-1 text-sm">
+                                            {item.userAccount}
+                                          </td>
+                                          <td className="border px-2 py-1 text-sm">
+                                            {item.correctAccount}
+                                          </td>
+                                          <td className="border px-2 py-1 text-right font-mono text-xs">
+                                            {item.userAmount}
+                                          </td>
+                                          <td className="border px-2 py-1 text-right font-mono text-xs">
+                                            {item.correctAmount.toLocaleString()}
+                                          </td>
+                                          <td className="border px-2 py-1 text-center">
+                                            {item.isCorrect ? '✓' : '✗'}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+
+                                {/* 貸方 */}
+                                <div className="border">
+                                  <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                    貸方
+                                  </div>
+                                  <table className="w-full text-sm">
+                                    <thead className="bg-gray-100">
+                                      <tr>
+                                        <th className="border px-2 py-1">科目</th>
+                                        <th className="border px-2 py-1">回答</th>
+                                        <th className="border px-2 py-1">正解</th>
+                                        <th className="border px-2 py-1">金額</th>
+                                        <th className="border px-2 py-1">正解</th>
+                                        <th className="border px-2 py-1">判定</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {(detailedResult as any).credit.map((item: any, idx: number) => (
+                                        <tr
+                                          key={idx}
+                                          className={item.isCorrect ? 'bg-green-50' : 'bg-red-50'}
+                                        >
+                                          <td className="border px-2 py-1">貸方</td>
+                                          <td className="border px-2 py-1 text-sm">
+                                            {item.userAccount}
+                                          </td>
+                                          <td className="border px-2 py-1 text-sm">
+                                            {item.correctAccount}
+                                          </td>
+                                          <td className="border px-2 py-1 text-right font-mono text-xs">
+                                            {item.userAmount}
+                                          </td>
+                                          <td className="border px-2 py-1 text-right font-mono text-xs">
+                                            {item.correctAmount.toLocaleString()}
+                                          </td>
+                                          <td className="border px-2 py-1 text-center">
+                                            {item.isCorrect ? '✓' : '✗'}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
                             </div>
                           )}
 
@@ -597,10 +816,126 @@ export default function ExamPage() {
                       )}
 
                       {subQ.type === 'journal' && (
-                        <div className="bg-gray-50 p-4 rounded">
-                          <p className="text-sm text-gray-600">
-                            ※ 仕訳問題は現在開発中です
-                          </p>
+                        <div className="mt-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            {/* 借方 */}
+                            <div className="border">
+                              <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                借方
+                              </div>
+                              <table className="w-full text-sm">
+                                <thead className="bg-gray-100">
+                                  <tr>
+                                    <th className="border px-2 py-1">勘定科目</th>
+                                    <th className="border px-2 py-1 w-32">金額</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {[0, 1, 2].map((index) => (
+                                    <tr key={index} className="border-b">
+                                      <td className="border px-2 py-1">
+                                        <input
+                                          type="text"
+                                          value={
+                                            answers[subQ.id]?.debit?.[index]?.account || ''
+                                          }
+                                          onChange={(e) =>
+                                            handleJournalEntryChange(
+                                              subQ.id,
+                                              'debit',
+                                              index,
+                                              'account',
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full border-gray-300 px-2 py-1 text-sm"
+                                          placeholder="勘定科目"
+                                        />
+                                      </td>
+                                      <td className="border px-2 py-1">
+                                        <input
+                                          type="number"
+                                          value={
+                                            answers[subQ.id]?.debit?.[index]?.amount || ''
+                                          }
+                                          onChange={(e) =>
+                                            handleJournalEntryChange(
+                                              subQ.id,
+                                              'debit',
+                                              index,
+                                              'amount',
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full border-gray-300 px-2 py-1 text-right font-mono text-sm"
+                                          placeholder="0"
+                                        />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* 貸方 */}
+                            <div className="border">
+                              <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                貸方
+                              </div>
+                              <table className="w-full text-sm">
+                                <thead className="bg-gray-100">
+                                  <tr>
+                                    <th className="border px-2 py-1">勘定科目</th>
+                                    <th className="border px-2 py-1 w-32">金額</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {[0, 1, 2].map((index) => (
+                                    <tr key={index} className="border-b">
+                                      <td className="border px-2 py-1">
+                                        <input
+                                          type="text"
+                                          value={
+                                            answers[subQ.id]?.credit?.[index]?.account || ''
+                                          }
+                                          onChange={(e) =>
+                                            handleJournalEntryChange(
+                                              subQ.id,
+                                              'credit',
+                                              index,
+                                              'account',
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full border-gray-300 px-2 py-1 text-sm"
+                                          placeholder="勘定科目"
+                                        />
+                                      </td>
+                                      <td className="border px-2 py-1">
+                                        <input
+                                          type="number"
+                                          value={
+                                            answers[subQ.id]?.credit?.[index]?.amount || ''
+                                          }
+                                          onChange={(e) =>
+                                            handleJournalEntryChange(
+                                              subQ.id,
+                                              'credit',
+                                              index,
+                                              'amount',
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full border-gray-300 px-2 py-1 text-right font-mono text-sm"
+                                          placeholder="0"
+                                        />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

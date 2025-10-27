@@ -38,6 +38,11 @@ export interface SubQuestion {
   tableConfig?: {
     type: 'balance-sheet' | 'income-statement' | 'worksheet' | 'cost-statement';
     items: string[]; // 入力が必要な項目のリスト
+    // 貸借対照表用の左右分割設定
+    sections?: {
+      left?: { title: string; items: string[] };
+      right?: { title: string; items: string[] };
+    };
   };
 }
 

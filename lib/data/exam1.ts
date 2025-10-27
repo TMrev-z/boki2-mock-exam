@@ -142,6 +142,16 @@ export const exam1: Exam = {
               '純資産合計',
               '負債・純資産合計',
             ],
+            sections: {
+              left: {
+                title: '資産の部',
+                items: ['流動資産合計', '固定資産合計', '資産合計'],
+              },
+              right: {
+                title: '負債・純資産の部',
+                items: ['流動負債合計', '純資産合計', '負債・純資産合計'],
+              },
+            },
           },
           answer: {
             items: {

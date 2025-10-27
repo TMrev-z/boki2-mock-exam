@@ -284,32 +284,117 @@ export default function ExamPage() {
 
                           {subQ.type === 'table' && detailedResult && (
                             <div className="mt-3">
-                              <div className="overflow-x-auto">
-                                <table className="min-w-full text-sm border">
-                                  <thead className="bg-gray-100">
-                                    <tr>
-                                      <th className="border px-4 py-2">項目</th>
-                                      <th className="border px-4 py-2">あなたの回答</th>
-                                      <th className="border px-4 py-2">正解</th>
-                                      <th className="border px-4 py-2">判定</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {detailedResult.map((item: any, idx: number) => (
-                                      <tr key={idx} className={item.isCorrect ? 'bg-green-50' : 'bg-red-50'}>
-                                        <td className="border px-4 py-2">{item.key}</td>
-                                        <td className="border px-4 py-2 text-right font-mono">{item.user}</td>
-                                        <td className="border px-4 py-2 text-right font-mono">
-                                          {item.correct.toLocaleString()}
-                                        </td>
-                                        <td className="border px-4 py-2 text-center">
-                                          {item.isCorrect ? '✓' : '✗'}
-                                        </td>
+                              {subQ.tableConfig?.sections ? (
+                                <div className="grid grid-cols-2 gap-4">
+                                  {subQ.tableConfig.sections.left && (
+                                    <div className="border">
+                                      <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                        {subQ.tableConfig.sections.left.title}
+                                      </div>
+                                      <table className="w-full text-sm">
+                                        <thead className="bg-gray-100">
+                                          <tr>
+                                            <th className="border px-2 py-1 text-left">項目</th>
+                                            <th className="border px-2 py-1">回答</th>
+                                            <th className="border px-2 py-1">正解</th>
+                                            <th className="border px-2 py-1">判定</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {detailedResult
+                                            .filter((item: any) =>
+                                              subQ.tableConfig?.sections?.left?.items.includes(item.key)
+                                            )
+                                            .map((item: any, idx: number) => (
+                                              <tr
+                                                key={idx}
+                                                className={item.isCorrect ? 'bg-green-50' : 'bg-red-50'}
+                                              >
+                                                <td className="border px-2 py-1 text-left">{item.key}</td>
+                                                <td className="border px-2 py-1 text-right font-mono text-xs">
+                                                  {item.user}
+                                                </td>
+                                                <td className="border px-2 py-1 text-right font-mono text-xs">
+                                                  {item.correct.toLocaleString()}
+                                                </td>
+                                                <td className="border px-2 py-1 text-center">
+                                                  {item.isCorrect ? '✓' : '✗'}
+                                                </td>
+                                              </tr>
+                                            ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+                                  {subQ.tableConfig.sections.right && (
+                                    <div className="border">
+                                      <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                        {subQ.tableConfig.sections.right.title}
+                                      </div>
+                                      <table className="w-full text-sm">
+                                        <thead className="bg-gray-100">
+                                          <tr>
+                                            <th className="border px-2 py-1 text-left">項目</th>
+                                            <th className="border px-2 py-1">回答</th>
+                                            <th className="border px-2 py-1">正解</th>
+                                            <th className="border px-2 py-1">判定</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {detailedResult
+                                            .filter((item: any) =>
+                                              subQ.tableConfig?.sections?.right?.items.includes(item.key)
+                                            )
+                                            .map((item: any, idx: number) => (
+                                              <tr
+                                                key={idx}
+                                                className={item.isCorrect ? 'bg-green-50' : 'bg-red-50'}
+                                              >
+                                                <td className="border px-2 py-1 text-left">{item.key}</td>
+                                                <td className="border px-2 py-1 text-right font-mono text-xs">
+                                                  {item.user}
+                                                </td>
+                                                <td className="border px-2 py-1 text-right font-mono text-xs">
+                                                  {item.correct.toLocaleString()}
+                                                </td>
+                                                <td className="border px-2 py-1 text-center">
+                                                  {item.isCorrect ? '✓' : '✗'}
+                                                </td>
+                                              </tr>
+                                            ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="overflow-x-auto">
+                                  <table className="min-w-full text-sm border">
+                                    <thead className="bg-gray-100">
+                                      <tr>
+                                        <th className="border px-4 py-2">項目</th>
+                                        <th className="border px-4 py-2">あなたの回答</th>
+                                        <th className="border px-4 py-2">正解</th>
+                                        <th className="border px-4 py-2">判定</th>
                                       </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
+                                    </thead>
+                                    <tbody>
+                                      {detailedResult.map((item: any, idx: number) => (
+                                        <tr key={idx} className={item.isCorrect ? 'bg-green-50' : 'bg-red-50'}>
+                                          <td className="border px-4 py-2">{item.key}</td>
+                                          <td className="border px-4 py-2 text-right font-mono">{item.user}</td>
+                                          <td className="border px-4 py-2 text-right font-mono">
+                                            {item.correct.toLocaleString()}
+                                          </td>
+                                          <td className="border px-4 py-2 text-center">
+                                            {item.isCorrect ? '✓' : '✗'}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -416,34 +501,98 @@ export default function ExamPage() {
 
                       {subQ.type === 'table' && subQ.tableConfig && (
                         <div className="mt-4">
-                          <div className="overflow-x-auto">
-                            <table className="min-w-full border">
-                              <thead className="bg-gray-100">
-                                <tr>
-                                  <th className="border px-4 py-2 text-left">項目</th>
-                                  <th className="border px-4 py-2 text-right">金額（円）</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {subQ.tableConfig.items.map((item) => (
-                                  <tr key={item}>
-                                    <td className="border px-4 py-2">{item}</td>
-                                    <td className="border px-2 py-2">
-                                      <input
-                                        type="number"
-                                        value={answers[subQ.id]?.[item] || ''}
-                                        onChange={(e) =>
-                                          handleTableAnswerChange(subQ.id, item, e.target.value)
-                                        }
-                                        className="w-full border-gray-300 rounded px-3 py-1 text-right font-mono"
-                                        placeholder="0"
-                                      />
-                                    </td>
+                          {/* 貸借対照表の左右分割表示 */}
+                          {subQ.tableConfig.sections ? (
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* 左側（資産の部） */}
+                              {subQ.tableConfig.sections.left && (
+                                <div className="border">
+                                  <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                    {subQ.tableConfig.sections.left.title}
+                                  </div>
+                                  <table className="w-full">
+                                    <tbody>
+                                      {subQ.tableConfig.sections.left.items.map((item) => (
+                                        <tr key={item} className="border-b">
+                                          <td className="px-4 py-2 text-left">{item}</td>
+                                          <td className="px-2 py-2 w-40">
+                                            <input
+                                              type="number"
+                                              value={answers[subQ.id]?.[item] || ''}
+                                              onChange={(e) =>
+                                                handleTableAnswerChange(subQ.id, item, e.target.value)
+                                              }
+                                              className="w-full border border-gray-300 px-2 py-1 text-right font-mono text-sm"
+                                              placeholder=""
+                                            />
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+
+                              {/* 右側（負債・純資産の部） */}
+                              {subQ.tableConfig.sections.right && (
+                                <div className="border">
+                                  <div className="bg-gray-700 text-white px-4 py-2 font-semibold text-center">
+                                    {subQ.tableConfig.sections.right.title}
+                                  </div>
+                                  <table className="w-full">
+                                    <tbody>
+                                      {subQ.tableConfig.sections.right.items.map((item) => (
+                                        <tr key={item} className="border-b">
+                                          <td className="px-4 py-2 text-left">{item}</td>
+                                          <td className="px-2 py-2 w-40">
+                                            <input
+                                              type="number"
+                                              value={answers[subQ.id]?.[item] || ''}
+                                              onChange={(e) =>
+                                                handleTableAnswerChange(subQ.id, item, e.target.value)
+                                              }
+                                              className="w-full border border-gray-300 px-2 py-1 text-right font-mono text-sm"
+                                              placeholder=""
+                                            />
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            /* 通常の表形式表示 */
+                            <div className="overflow-x-auto border">
+                              <table className="w-full">
+                                <thead className="bg-gray-100">
+                                  <tr>
+                                    <th className="border px-4 py-2 text-left">項目</th>
+                                    <th className="border px-4 py-2 text-right w-48">金額（円）</th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
+                                </thead>
+                                <tbody>
+                                  {subQ.tableConfig.items.map((item) => (
+                                    <tr key={item} className="border-b">
+                                      <td className="border px-4 py-2">{item}</td>
+                                      <td className="border px-2 py-2">
+                                        <input
+                                          type="number"
+                                          value={answers[subQ.id]?.[item] || ''}
+                                          onChange={(e) =>
+                                            handleTableAnswerChange(subQ.id, item, e.target.value)
+                                          }
+                                          className="w-full border-gray-300 px-2 py-1 text-right font-mono text-sm"
+                                          placeholder="0"
+                                        />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
                         </div>
                       )}
 
